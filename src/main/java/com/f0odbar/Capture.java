@@ -38,9 +38,8 @@ public class Capture extends Thread {
     @Override
     public void run() {
         frame = new AtomicInteger(0);
-        boolean sent = false;
         while (started.get()) {
-            if (!webcam.isOpen() || !started.get() || sent) {
+            if (!webcam.isOpen() || !started.get()) {
                 break;
             }
 
@@ -57,7 +56,6 @@ public class Capture extends Thread {
                     //serialPort.writeByte((byte) 0XAB);
                     serialPort.writeBytes(data.getData());
                     Thread.sleep(300);
-                    //sent = true;
                 }
             } catch (SerialPortException | InterruptedException e) {
                 e.printStackTrace();
