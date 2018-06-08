@@ -1,21 +1,15 @@
-package com.f0odbar;
+package com.pony101;
 
 import jssc.SerialPortException;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/**
- * D.Kruhlov
- *
- * @f0odbar denis.kruglov.dev@gmail.com
- * date: 09.11.2017
- */
-public class Main {
+public class Application {
 
-    private static Capture capture;
+    private Capture capture;
 
-    public static void main(String[] args) {
+    public void run() {
         Window window = new Window();
         window.initWindow();
 
@@ -51,9 +45,10 @@ public class Main {
         });
     }
 
-    private static void stopCapture() {
+    private void stopCapture() {
         if (capture != null) {
             capture.stopCapture();
         }
     }
+
 }

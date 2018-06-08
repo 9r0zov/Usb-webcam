@@ -1,13 +1,11 @@
-package com.f0odbar;
+package com.pony101;
 
 import com.github.sarxos.webcam.Webcam;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * D.Kruhlov
  *
- * @f0odbar denis.kruglov.dev@gmail.com
+ * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
 public class Capture extends Thread {
@@ -30,6 +28,7 @@ public class Capture extends Thread {
     private AtomicInteger frame;
 
     public Capture(Webcam webcam, SerialPort serialPort) {
+        super("CAPTURE");
         this.webcam = webcam;
         this.serialPort = serialPort;
         started = new AtomicBoolean(true);

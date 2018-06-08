@@ -1,10 +1,8 @@
-package com.f0odbar;
+package com.pony101;
 
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamException;
 import com.github.sarxos.webcam.WebcamPanel;
-import javafx.util.Pair;
-import jssc.SerialNativeInterface;
 import jssc.SerialPortList;
 
 import javax.swing.*;
@@ -19,7 +17,7 @@ import java.util.function.Consumer;
 /**
  * D.Kruhlov
  *
- * @f0odbar denis.kruglov.dev@gmail.com
+ * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
 public class Window {
@@ -38,6 +36,8 @@ public class Window {
     private JComboBox<String> cbPorts;
     private JButton btnStartStop;
     private boolean started;
+
+    private PortSearcher portSearcher;
 
     public Window() {
         window = new JFrame(TITLE);
@@ -58,8 +58,11 @@ public class Window {
             webcam.setViewSize(new Dimension(IMG_WIDTH, IMG_HEIGHT));
 
             WebcamPanel webcamPanel = new WebcamPanel(webcam);
+            webcamPanel.setFPSLimited(true);
             webcamPanel.setFPSLimit(30);
             webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
+            webcamPanel.setFPSDisplayed(true);
+            webcamPanel.setMirrored(true);
             webcam.open();
 
             window.add(webcamPanel);
@@ -78,6 +81,9 @@ public class Window {
         btnStartStop = new JButton(START);
 
         window.add(btnStartStop);
+
+        portSearcher = new PortSearcher();
+        portSearcher.start();
 
         window.setVisible(true);
     }
@@ -105,21 +111,57 @@ public class Window {
     public void setBtnClickCallback(BiConsumer<Boolean, String> consumer) {
         if (btnStartStop != null) {
             btnStartStop.addActionListener(e -> {
-                if (started) {
-                    started = false;
-                    btnStartStop.setText(START);
-                } else {
-                    started = true;
-                    btnStartStop.setText(STOP);
+                if (cbPorts.getSelectedItem() != null) {
+                    if (started) {
+                        started = false;
+                        btnStartStop.setText(START);
+                    } else {
+                        started = true;
+                        btnStartStop.setText(STOP);
+                    }
+                    cbPorts.setEnabled(!started);
+                    portSearcher.setSearch(false);
+                    consumer.accept(started, cbPorts.getSelectedItem().toString());
                 }
-                cbPorts.setEnabled(!started);
-                consumer.accept(started, cbPorts.getSelectedItem().toString());
             });
         }
     }
 
     public Webcam getWebcam() {
         return webcam;
+    }
+
+    public class PortSearcher extends Thread {
+
+        private boolean search = true;
+        private final DefaultComboBoxModel MODEL = new DefaultComboBoxModel<>();
+
+        public PortSearcher() {
+            super("PORT_SEARCHER");
+        }
+
+        @Override
+        public void run() {
+            while (search) {
+                try {
+                    Thread.sleep(500);
+                    MODEL.removeAllElements();
+                    String[] portNames = SerialPortList.getPortNames();
+                    for (int i = 0; i < portNames.length; i++) {
+                        MODEL.addElement(portNames[i]);
+                    }
+
+                    Window.this.cbPorts.setModel(MODEL);
+                    Window.this.cbPorts.setEnabled(portNames.length > 0);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void setSearch(boolean search) {
+            this.search = search;
+        }
     }
 
 }

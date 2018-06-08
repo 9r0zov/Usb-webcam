@@ -28,6 +28,10 @@ dependencies {
 }
 
 task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.pony101.Main'
+    }
+
     baseName = project.name
     from {
         configurations.compile.collect {
@@ -35,13 +39,10 @@ task fatJar(type: Jar) {
         }
     }
     with jar
-    manifest {
-        attributes 'Main-Class': 'com.f0odbar.Main'
-    }
 }
 
 task runApp(type: JavaExec) {
     dependsOn fatJar
     classpath fatJar.outputs.files
-    main "com.f0odbar.Main"
+    main "com.pony101.Main"
 }

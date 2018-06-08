@@ -1,11 +1,7 @@
-package com.f0odbar;
+package com.pony101;
 
 import jssc.SerialPort;
-import jssc.SerialPortEvent;
-import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-
-import java.io.OutputStream;
 
 import static jssc.SerialPort.DATABITS_8;
 import static jssc.SerialPort.PARITY_NONE;
@@ -14,7 +10,7 @@ import static jssc.SerialPort.STOPBITS_1;
 /**
  * D.Kruhlov
  *
- * @f0odbar denis.kruglov.dev@gmail.com
+ * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
 public class PortWriter {
