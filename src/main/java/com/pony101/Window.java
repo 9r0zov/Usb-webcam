@@ -20,17 +20,15 @@ import java.util.function.Consumer;
  * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
-public class Window {
+final public class Window extends JFrame {
 
     private static final String TITLE = "USB-webcam 0.1";
 
-    private static final int IMG_WIDTH = 640;
-    private static final int IMG_HEIGHT = 480;
+    public static final int IMG_WIDTH = 640;
+    public static final int IMG_HEIGHT = 480;
 
     private final String START = "Start";
     private final String STOP = "Stop";
-
-    private final JFrame window;
 
     private Webcam webcam;
     private JComboBox<String> cbPorts;
@@ -40,70 +38,29 @@ public class Window {
     private PortSearcher portSearcher;
 
     public Window() {
-        window = new JFrame(TITLE);
-        window.setSize(new Dimension(IMG_WIDTH, IMG_HEIGHT + 100));
-        window.setResizable(false);
-        window.setLayout(new FlowLayout());
-        window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    }
-
-    public void initWindow() {
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        int x = dim.width / 2 - IMG_WIDTH / 2;
-        int y = dim.height / 2 - IMG_HEIGHT / 2;
-        window.setLocation(x, y);
-
-        try {
-            webcam = Webcam.getDefault();
-            webcam.setViewSize(new Dimension(IMG_WIDTH, IMG_HEIGHT));
-
-            WebcamPanel webcamPanel = new WebcamPanel(webcam);
-            webcamPanel.setFPSLimited(true);
-            webcamPanel.setFPSLimit(30);
-            webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
-            webcamPanel.setFPSDisplayed(true);
-            webcamPanel.setMirrored(true);
-            webcam.open();
-
-            window.add(webcamPanel);
-        } catch (WebcamException e) {
-            final JLabel text = new JLabel();
-            text.setText("No camera detected");
-            text.setFont(new Font("Arial", 0, 26));
-            window.add(text);
-        }
-
-        cbPorts = new JComboBox<>(SerialPortList.getPortNames());
-        cbPorts.setMinimumSize(new Dimension(200, 20));
-        cbPorts.setSize(new Dimension(200, 20));
-        window.add(cbPorts);
-
-        btnStartStop = new JButton(START);
-
-        window.add(btnStartStop);
-
-        portSearcher = new PortSearcher();
-        portSearcher.start();
-
-        window.setVisible(true);
+        super(TITLE);
+        setSize(new Dimension(IMG_WIDTH, IMG_HEIGHT + 100));
+        setResizable(false);
+        setLayout(new FlowLayout());
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        
+        initWindow();
     }
 
     public void addCameraListener(Consumer<BufferedImage> consumer) {
-        while (true) {
-            if (!webcam.isOpen()) {
-                break;
-            }
-            consumer.accept(webcam.getImage());
-        }
+        webcam.addWebcamListener(new FramesWebcemListener(consumer));
     }
 
     public void setWindowEventListener(WindowListener windowListener) {
-        window.addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 windowListener.windowClosing(e);
-                webcam.close();
+                portSearcher.setSearch(false);
+                if (webcam != null) {
+                    webcam.close();
+                }
             }
         });
     }
@@ -120,7 +77,6 @@ public class Window {
                         btnStartStop.setText(STOP);
                     }
                     cbPorts.setEnabled(!started);
-                    portSearcher.setSearch(false);
                     consumer.accept(started, cbPorts.getSelectedItem().toString());
                 }
             });
@@ -131,13 +87,55 @@ public class Window {
         return webcam;
     }
 
-    public class PortSearcher extends Thread {
+    private void initWindow() {
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = dim.width / 2 - IMG_WIDTH / 2;
+        int y = dim.height / 2 - IMG_HEIGHT / 2;
+        setLocation(x, y);
+
+        try {
+            webcam = Webcam.getDefault();
+            webcam.setViewSize(new Dimension(IMG_WIDTH, IMG_HEIGHT));
+
+            WebcamPanel webcamPanel = new WebcamPanel(webcam);
+            webcamPanel.setFPSLimited(true);
+            webcamPanel.setFPSLimit(50);
+            webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
+            webcamPanel.setMirrored(true);
+            webcam.open();
+
+            add(webcamPanel);
+        } catch (WebcamException e) {
+            final JLabel text = new JLabel();
+            text.setText("No camera detected");
+            text.setFont(new Font("Arial", 0, 26));
+            add(text);
+        }
+
+        cbPorts = new JComboBox<>(SerialPortList.getPortNames());
+        cbPorts.setMinimumSize(new Dimension(200, 20));
+        cbPorts.setSize(new Dimension(200, 20));
+        add(cbPorts);
+
+        btnStartStop = new JButton(START);
+
+        add(btnStartStop);
+
+        portSearcher = new PortSearcher(cbPorts);
+        new Thread(portSearcher).start();
+
+        setVisible(true);
+    }
+
+    final class PortSearcher implements Runnable {
+
+        private final DefaultComboBoxModel MODEL = new DefaultComboBoxModel<>();
+        private final JComboBox CB_PORTS;
 
         private boolean search = true;
-        private final DefaultComboBoxModel MODEL = new DefaultComboBoxModel<>();
 
-        public PortSearcher() {
-            super("PORT_SEARCHER");
+        PortSearcher(JComboBox cbPorts) {
+            this.CB_PORTS = cbPorts;
         }
 
         @Override
@@ -145,21 +143,25 @@ public class Window {
             while (search) {
                 try {
                     Thread.sleep(500);
-                    MODEL.removeAllElements();
+
                     String[] portNames = SerialPortList.getPortNames();
-                    for (int i = 0; i < portNames.length; i++) {
-                        MODEL.addElement(portNames[i]);
+                    MODEL.removeAllElements();
+
+                    for (String portName : portNames) {
+                        MODEL.addElement(portName);
                     }
 
-                    Window.this.cbPorts.setModel(MODEL);
-                    Window.this.cbPorts.setEnabled(portNames.length > 0);
+                    synchronized (CB_PORTS) {
+                        CB_PORTS.setModel(MODEL);
+                        CB_PORTS.setEnabled(portNames.length > 0);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
 
-        public void setSearch(boolean search) {
+        void setSearch(boolean search) {
             this.search = search;
         }
     }

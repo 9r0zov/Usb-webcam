@@ -19,6 +19,7 @@ public class PortWriter {
 
     public boolean connectPort(String portName) {
         serialPort = new SerialPort(portName);
+
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_115200, DATABITS_8, STOPBITS_1, PARITY_NONE);
@@ -29,20 +30,22 @@ public class PortWriter {
                     e.printStackTrace();
                 }
             });
+
             return serialPort.isOpened();
         } catch (SerialPortException e) {
             e.printStackTrace();
         }
+
         return false;
     }
 
-    public synchronized void stop() throws SerialPortException {
+    public void stop() throws SerialPortException {
         if (serialPort != null && serialPort.isOpened()) {
             serialPort.closePort();
         }
     }
 
-    public synchronized SerialPort getSerialPort() {
+    public SerialPort getSerialPort() {
         return serialPort;
     }
 }

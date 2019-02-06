@@ -7,47 +7,40 @@ import java.awt.event.WindowEvent;
 
 public class Application {
 
-    private Capture capture;
+    private CaptureTask captureTask;
 
-    public void run() {
-        Window window = new Window();
-        window.initWindow();
-
+    public void go() {
+        final Window window = new Window();
         final PortWriter portWriter = new PortWriter();
 
         window.setBtnClickCallback((started, port) -> {
             if (started) {
                 if (portWriter.connectPort(port)) {
-                    capture = new Capture(window.getWebcam(), portWriter.getSerialPort());
-                    capture.start();
+                    captureTask = new CaptureTask(window.getWebcam(), portWriter.getSerialPort(),
+                            Window.IMG_WIDTH, Window.IMG_HEIGHT);
+                    new Thread(captureTask).start();
                 }
             } else {
-                stopCapture();
-                try {
-                    portWriter.stop();
-                } catch (SerialPortException e) {
-                    e.printStackTrace();
-                }
+                stopReadingFrames(portWriter);
             }
         });
 
         window.setWindowEventListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                super.windowClosing(event);
-                stopCapture();
-                try {
-                    portWriter.stop();
-                } catch (SerialPortException e) {
-                    e.printStackTrace();
-                }
+                stopReadingFrames(portWriter);
             }
         });
     }
 
-    private void stopCapture() {
-        if (capture != null) {
-            capture.stopCapture();
+    private void stopReadingFrames(PortWriter portWriter) {
+        if (captureTask != null) {
+            captureTask.stopCapture();
+        }
+        try {
+            portWriter.stop();
+        } catch (SerialPortException e) {
+            e.printStackTrace();
         }
     }
 
