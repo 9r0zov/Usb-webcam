@@ -3,6 +3,7 @@
 .idea
 out/*
 images/*
+gradle/*
 
 # Ignore Gradle GUI config
 gradle-app.setting

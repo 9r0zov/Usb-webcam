@@ -1,11 +1,7 @@
-package com.f0odbar;
+package com.pony101.port;
 
 import jssc.SerialPort;
-import jssc.SerialPortEvent;
-import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-
-import java.io.OutputStream;
 
 import static jssc.SerialPort.DATABITS_8;
 import static jssc.SerialPort.PARITY_NONE;
@@ -14,7 +10,7 @@ import static jssc.SerialPort.STOPBITS_1;
 /**
  * D.Kruhlov
  *
- * @f0odbar denis.kruglov.dev@gmail.com
+ * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
 public class PortWriter {
@@ -23,6 +19,7 @@ public class PortWriter {
 
     public boolean connectPort(String portName) {
         serialPort = new SerialPort(portName);
+
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_115200, DATABITS_8, STOPBITS_1, PARITY_NONE);
@@ -33,20 +30,22 @@ public class PortWriter {
                     e.printStackTrace();
                 }
             });
+
             return serialPort.isOpened();
         } catch (SerialPortException e) {
             e.printStackTrace();
         }
+
         return false;
     }
 
-    public synchronized void stop() throws SerialPortException {
+    public void stop() throws SerialPortException {
         if (serialPort != null && serialPort.isOpened()) {
             serialPort.closePort();
         }
     }
 
-    public synchronized SerialPort getSerialPort() {
+    public SerialPort getSerialPort() {
         return serialPort;
     }
 }

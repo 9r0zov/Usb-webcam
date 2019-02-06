@@ -1,47 +1,35 @@
 group 'USB-webcam'
-version '0.1-snapshot'
+version '0.2-dev'
 
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
-
+        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.4"
     }
 }
 
 apply plugin: 'java'
-
-sourceCompatibility = 1.8
+apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+
     // COM port lib
-    compile 'com.fazecast:jSerialComm:1.3.11'
-    compile 'org.scream3r:jssc:2.8.0'
+    compile group: 'com.fazecast', name: 'jSerialComm', version: '2.4.0'
+    compile group: 'org.scream3r', name: 'jssc', version: '2.8.0'
 
     // webcam
-    compile 'com.github.sarxos:webcam-capture-driver-fswebcam:0.3.11'
+    compile group: 'com.github.sarxos', name: 'webcam-capture', version: '0.3.12'
+    // compile group: 'org.openimaj', name: 'core-video', version: '1.3.8'
 }
 
-task fatJar(type: Jar) {
-    baseName = project.name
-    from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    with jar
-    manifest {
-        attributes 'Main-Class': 'com.f0odbar.Main'
-    }
-}
+sourceCompatibility = 1.8
 
-task runApp(type: JavaExec) {
-    dependsOn fatJar
-    classpath fatJar.outputs.files
-    main "com.f0odbar.Main"
+shadowJar {
+    archiveName = "Usb_Webcam-${version}.${extension}"
 }
