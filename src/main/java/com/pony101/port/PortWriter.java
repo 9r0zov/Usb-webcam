@@ -1,4 +1,4 @@
-package com.pony101;
+package com.pony101.port;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;

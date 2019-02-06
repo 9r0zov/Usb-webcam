@@ -1,5 +1,8 @@
 package com.pony101;
 
+import com.pony101.capture.CaptureTask;
+import com.pony101.port.PortWriter;
+import com.pony101.ui.Window;
 import jssc.SerialPortException;
 
 import java.awt.event.WindowAdapter;

@@ -1,4 +1,4 @@
-package com.pony101;
+package com.pony101.capture;
 
 import com.github.sarxos.webcam.Webcam;
 import jssc.SerialPort;

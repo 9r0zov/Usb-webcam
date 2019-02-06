@@ -1,8 +1,9 @@
-package com.pony101;
+package com.pony101.ui;
 
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamException;
 import com.github.sarxos.webcam.WebcamPanel;
+import com.pony101.ui.listener.FramesWebcamListener;
 import jssc.SerialPortList;
 
 import javax.swing.*;
@@ -48,7 +49,7 @@ final public class Window extends JFrame {
     }
 
     public void addCameraListener(Consumer<BufferedImage> consumer) {
-        webcam.addWebcamListener(new FramesWebcemListener(consumer));
+        webcam.addWebcamListener(new FramesWebcamListener(consumer));
     }
 
     public void setWindowEventListener(WindowListener windowListener) {

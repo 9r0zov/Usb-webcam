@@ -1,5 +1,5 @@
 group 'USB-webcam'
-version '0.2'
+version '0.2-dev'
 
 buildscript {
     repositories {

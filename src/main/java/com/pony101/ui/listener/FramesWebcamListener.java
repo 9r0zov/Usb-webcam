@@ -1,4 +1,4 @@
-package com.pony101;
+package com.pony101.ui.listener;
 
 import com.github.sarxos.webcam.WebcamEvent;
 import com.github.sarxos.webcam.WebcamListener;
@@ -6,11 +6,11 @@ import com.github.sarxos.webcam.WebcamListener;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 
-public class FramesWebcemListener implements WebcamListener {
+public class FramesWebcamListener implements WebcamListener {
 
     private Consumer<BufferedImage> consumer;
 
-    public FramesWebcemListener(Consumer<BufferedImage> consumer) {
+    public FramesWebcamListener(Consumer<BufferedImage> consumer) {
         this.consumer = consumer;
     }
 
