@@ -8,12 +8,12 @@ import jssc.SerialPortList;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import static javax.swing.SwingConstants.LEADING;
 
 /**
  * D.Kruhlov
@@ -32,6 +32,7 @@ final public class Window extends JFrame {
     private final String STOP = "Stop";
 
     private Webcam webcam;
+    private JCheckBox writeToFileCheckBox;
     private JComboBox<String> cbPorts;
     private JButton btnStartStop;
     private boolean started;
@@ -50,6 +51,10 @@ final public class Window extends JFrame {
 
     public void addCameraListener(Consumer<BufferedImage> consumer) {
         webcam.addWebcamListener(new FramesWebcamListener(consumer));
+    }
+
+    public void setWriteToFileSwitchCallback(Consumer<Boolean> consumer) {
+        writeToFileCheckBox.addItemListener(e -> consumer.accept(e.getStateChange() == ItemEvent.SELECTED));
     }
 
     public void setWindowEventListener(WindowListener windowListener) {
@@ -112,6 +117,12 @@ final public class Window extends JFrame {
             text.setFont(new Font("Arial", 0, 26));
             add(text);
         }
+
+        writeToFileCheckBox = new JCheckBox();
+        writeToFileCheckBox.setSelected(false);
+        writeToFileCheckBox.setText("Write to file:");
+        writeToFileCheckBox.setHorizontalTextPosition(LEADING);
+        add(writeToFileCheckBox);
 
         cbPorts = new JComboBox<>(SerialPortList.getPortNames());
         cbPorts.setMinimumSize(new Dimension(200, 20));

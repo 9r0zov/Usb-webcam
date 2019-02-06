@@ -13,7 +13,7 @@ import static jssc.SerialPort.STOPBITS_1;
  * @devPony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
-public class PortWriter {
+public class SerialPortConnector {
 
     private SerialPort serialPort;
 

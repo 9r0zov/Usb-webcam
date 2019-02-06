@@ -27,7 +27,8 @@ public class CaptureTask implements Runnable {
     private final SerialPort serialPort;
     private final BufferedImage image;
 
-    private Boolean started;
+    private boolean started;
+    private boolean writeToFile;
     private int frame;
 
     public CaptureTask(Webcam webcam, SerialPort serialPort, int width, int height) {
@@ -50,7 +51,9 @@ public class CaptureTask implements Runnable {
                 resizeFrame();
             }
 
-            saveImageToFile("orig", resized);
+            if (writeToFile) {
+                saveImageToFile("resized", resized);
+            }
 
             WritableRaster raster = resized.getRaster();
             DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
@@ -69,9 +72,15 @@ public class CaptureTask implements Runnable {
         started = false;
     }
 
+    public void setWriteToFile(boolean writeToFile) {
+        this.writeToFile = writeToFile;
+    }
+
     private void saveImageToFile(String suffix, BufferedImage image) {
         File output = new File(String.format("images/image_%s_%s.jpg", suffix, ++frame));
+
         output.mkdirs();
+
         try {
             ImageIO.write(image, "jpg", output);
         } catch (IOException e) {

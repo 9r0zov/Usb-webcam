@@ -1,7 +1,7 @@
 package com.pony101;
 
 import com.pony101.capture.CaptureTask;
-import com.pony101.port.PortWriter;
+import com.pony101.port.SerialPortConnector;
 import com.pony101.ui.Window;
 import jssc.SerialPortException;
 
@@ -14,34 +14,36 @@ public class Application {
 
     public void go() {
         final Window window = new Window();
-        final PortWriter portWriter = new PortWriter();
+        final SerialPortConnector serialPortConnector = new SerialPortConnector();
 
         window.setBtnClickCallback((started, port) -> {
             if (started) {
-                if (portWriter.connectPort(port)) {
-                    captureTask = new CaptureTask(window.getWebcam(), portWriter.getSerialPort(),
+                if (serialPortConnector.connectPort(port)) {
+                    captureTask = new CaptureTask(window.getWebcam(), serialPortConnector.getSerialPort(),
                             Window.IMG_WIDTH, Window.IMG_HEIGHT);
                     new Thread(captureTask).start();
                 }
             } else {
-                stopReadingFrames(portWriter);
+                stopReadingFrames(serialPortConnector);
             }
         });
 
         window.setWindowEventListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                stopReadingFrames(portWriter);
+                stopReadingFrames(serialPortConnector);
             }
         });
+
+        window.setWriteToFileSwitchCallback(write -> captureTask.setWriteToFile(write));
     }
 
-    private void stopReadingFrames(PortWriter portWriter) {
+    private void stopReadingFrames(SerialPortConnector serialPortConnector) {
         if (captureTask != null) {
             captureTask.stopCapture();
         }
         try {
-            portWriter.stop();
+            serialPortConnector.stop();
         } catch (SerialPortException e) {
             e.printStackTrace();
         }

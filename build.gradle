@@ -4,14 +4,19 @@ version '0.2-dev'
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "com.github.jengelman.gradle.plugins:shadow:4.0.4"
+        classpath "edu.sc.seis:macAppBundle:2.3.0"
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: "edu.sc.seis.macAppBundle"
 
 repositories {
     mavenCentral()
@@ -31,5 +36,12 @@ dependencies {
 sourceCompatibility = 1.8
 
 shadowJar {
+    minimize()
     archiveName = "Usb_Webcam-${version}.${extension}"
+    destinationDir = file("build/distribitions")
+}
+
+macAppBundle {
+    mainClassName = 'com.pony101.Main'
+    bundleJRE = true
 }
