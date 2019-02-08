@@ -25,7 +25,7 @@ public final class Application {
 
         window.setStartClickCallback((started, port) -> {
             if (started) {
-                Optional<SerialPort> serialPort = connectPort(port);
+                Optional<SerialPort> serialPort = connectPort(port, window.getWebcam());
                 serialPort.filter(SerialPort::isOpened)
                         .ifPresent(portDataSenderTask::setSerialPort);
             } else {

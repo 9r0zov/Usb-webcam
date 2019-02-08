@@ -4,6 +4,7 @@ import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamException;
 import com.github.sarxos.webcam.WebcamPanel;
 import com.pony101.log.LogMessageReceiverAppender;
+import com.pony101.log.TextAreaOutputStream;
 import com.pony101.ui.listener.FramesWebcamListener;
 import jssc.SerialPortList;
 import org.slf4j.Logger;
@@ -46,7 +47,6 @@ public final class Window extends JFrame {
     private JCheckBox writeToFileCheckBox;
     private JComboBox<String> cbPorts;
     private JButton btnStartStop;
-    private JTextArea logArea;
     private boolean started;
 
     private PortSearcher portSearcher;
@@ -148,7 +148,7 @@ public final class Window extends JFrame {
 
         add(btnStartStop);
 
-        logArea = new JTextArea();
+        JTextArea logArea = new JTextArea();
         logArea.setEnabled(false);
         logArea.setColumns(50);
         logArea.setRows(10);
@@ -157,6 +157,7 @@ public final class Window extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(logArea);
         scrollPane.setWheelScrollingEnabled(true);
+
         add(scrollPane);
 
         LogMessageReceiverAppender.setStaticOutputStream(new TextAreaOutputStream(logArea));

@@ -11,6 +11,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
+import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -41,6 +43,7 @@ public class PortDataSenderTask implements Runnable {
     private boolean writeToFile;
     private int frame;
 
+
     public PortDataSenderTask(Webcam webcam, int width, int height) {
         this.webcam = webcam;
         this.started = true;
@@ -52,45 +55,18 @@ public class PortDataSenderTask implements Runnable {
     @Override
     public void run() {
         while (started) {
-            safeSleep(MILLISECONDS, 1000);
-
-            BufferedImage tmp;
             synchronized (webcam) {
                 if (!webcam.isOpen()) {
                     return;
                 }
 
-                tmp = webcam.getImage();
-                image.setData(tmp.getData());
+                image.setData(webcam.getImage().getData());
             }
 
-            resizeFrame(tmp, resized);
+            resizeFrame(image, resized);
 
             if (writeToFile) {
                 saveImageToFile("resized", resized, ++frame);
-            }
-
-            try {
-                if (serialPort != null && serialPort.isOpened()) {
-
-                    WritableRaster raster = resized.getRaster();
-                    DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
-
-                    // todo: remove crutch
-                    byte[] bytes = data.getData();
-                    for (int i = 0; i < bytes.length; i++) {
-                        if (bytes[i] > -2) {
-                            bytes[i] = 1;
-                        } else {
-                            bytes[i] = 0;
-                        }
-                    }
-
-                    serialPort.writeBytes(bytes);
-
-                }
-            } catch (SerialPortException e) {
-                LOG.error(e.getMessage(), e);
             }
         }
     }

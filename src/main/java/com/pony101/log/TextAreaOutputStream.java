@@ -1,4 +1,4 @@
-package com.pony101.ui;
+package com.pony101.log;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
