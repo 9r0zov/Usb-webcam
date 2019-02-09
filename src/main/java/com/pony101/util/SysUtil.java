@@ -10,14 +10,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
+import static java.lang.String.format;
 
 public class SysUtil {
 
-    private final static Logger LOG = LoggerFactory.getLogger(SysUtil.class);
+    private static final  Logger LOG = LoggerFactory.getLogger(SysUtil.class);
+
+    private static final String FILE_PATH = "%1$s%4$simages%4$simage_%2$s_%3$s.png";
 
     public static void saveImageToFile(String suffix, BufferedImage image, int frame) {
-        File output = new File(String.format("images/image_%s_%s.jpg", suffix, frame));
+        final String userDir = System.getProperty("user.dir");
+        final String separator = File.separator;
+        File output = new File(format(FILE_PATH, userDir, suffix, frame, separator));
 
         output.mkdirs();
 

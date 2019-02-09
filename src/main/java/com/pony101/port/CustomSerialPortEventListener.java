@@ -88,7 +88,7 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
 
     private byte[] byteArrayToBinary(byte[] bytes) {
         for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] > -2) {
+            if (bytes[i] > 0) {
                 bytes[i] = 1;
             } else {
                 bytes[i] = 0;
