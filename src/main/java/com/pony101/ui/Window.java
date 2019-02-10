@@ -119,8 +119,7 @@ public final class Window extends JFrame {
             webcam.setViewSize(new Dimension(IMG_WIDTH, IMG_HEIGHT));
 
             WebcamPanel webcamPanel = new WebcamPanel(webcam);
-            webcamPanel.setFPSLimited(true);
-            webcamPanel.setFPSLimit(50);
+            webcamPanel.setFPSLimited(false);
             webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
             webcamPanel.setMirrored(true);
             webcam.open();

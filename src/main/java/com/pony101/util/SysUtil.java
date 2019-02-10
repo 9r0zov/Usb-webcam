@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +33,13 @@ public class SysUtil {
         }
     }
 
-    public static void resizeFrame(BufferedImage image, BufferedImage resized) {
+    public static void resizeFrameAndFlipHorizontal(BufferedImage image, BufferedImage resized) {
+        AffineTransform at = new AffineTransform();
+        at.concatenate(AffineTransform.getScaleInstance(-1, 1));
+        at.concatenate(AffineTransform.getTranslateInstance(-resized.getWidth(), 0));
+
         Graphics2D g2d = resized.createGraphics();
+        g2d.setTransform(at);
         g2d.drawImage(image, 0, 0, 128, 64, null);
         g2d.dispose();
     }

@@ -13,8 +13,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 
-import static com.pony101.util.SysUtil.resizeFrame;
-import static com.pony101.util.SysUtil.safeSleep;
+import static com.pony101.util.SysUtil.*;
 import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -29,6 +28,8 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
     private final Webcam webcam;
     private final SerialPort serialPort;
 
+    private int frame;
+
     public CustomSerialPortEventListener(Webcam webcam, SerialPort serialPort) {
         this.webcam = webcam;
         this.serialPort = serialPort;
@@ -36,10 +37,10 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
 
     @Override
     public void serialEvent(SerialPortEvent serialPortEvent) {
-        handleSerialPortEvent(webcam, serialPort);
+        handleSerialPortEvent();
     }
 
-    private void handleSerialPortEvent(Webcam webcam, SerialPort serialPort) {
+    private void handleSerialPortEvent() {
         try {
             byte[] bytes = serialPort.readBytes();
             if (bytes != null) {
@@ -65,37 +66,30 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
             image = webcam.getImage();
         }
 
-        resizeFrame(image, resized);
+        resizeFrameAndFlipHorizontal(image, resized);
 
         if (serialPort != null && serialPort.isOpened()) {
             WritableRaster raster = resized.getRaster();
             DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
 
-            // todo: remove crutch
-            byte[] bytes = byteArrayToBinary(data.getData());
+            byte[] bytes = data.getData();
 
             try {
                 for (int i = 0; i < 3; i++) {
-                    serialPort.writeBytes(Arrays.copyOfRange(bytes, i * 350, 350 * (i + 1)));
-                    safeSleep(MILLISECONDS, 50);
+                    int to = Math.min(350 * (i + 1), bytes.length);
+                    int from = i * 350;
+
+                    serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
+
+                    safeSleep(MILLISECONDS, 25);
                 }
             } catch (SerialPortException e) {
                 LOG.error(e.getMessage(), e);
             }
+
+            saveImageToFile("test", resized, frame++);
         }
 
-    }
-
-    private byte[] byteArrayToBinary(byte[] bytes) {
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] > 0) {
-                bytes[i] = 1;
-            } else {
-                bytes[i] = 0;
-            }
-        }
-
-        return bytes;
     }
 
 }

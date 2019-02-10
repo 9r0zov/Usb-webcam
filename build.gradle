@@ -1,5 +1,5 @@
 group 'USB-webcam'
-version '0.4'
+version '0.5'
 
 buildscript {
     repositories {
@@ -49,5 +49,4 @@ shadowJar {
 
 macAppBundle {
     mainClassName = 'com.pony101.Main'
-    //bundleJRE = true
 }
