@@ -1,6 +1,7 @@
 package com.pony101.port;
 
 import com.github.sarxos.webcam.Webcam;
+import com.pony101.ui.IWebcamProvider;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -29,15 +30,22 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
     private final SerialPort serialPort;
 
     private int frame;
+    private boolean writeToFile;
 
-    public CustomSerialPortEventListener(Webcam webcam, SerialPort serialPort) {
-        this.webcam = webcam;
+    public CustomSerialPortEventListener(IWebcamProvider webcamProvider, SerialPort serialPort) {
+        this.webcam = webcamProvider.getWebcam();
         this.serialPort = serialPort;
+
+        webcamProvider.setWriteToFileSwitchCallback(this::setWriteToFile);
     }
 
     @Override
     public void serialEvent(SerialPortEvent serialPortEvent) {
         handleSerialPortEvent();
+    }
+
+    public void setWriteToFile(boolean writeToFile) {
+        this.writeToFile = writeToFile;
     }
 
     private void handleSerialPortEvent() {
@@ -90,7 +98,9 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
                 serialPort.writeBytes(bytes);
             }
 
-            saveImageToFile("test", resized, frame++);
+            if (writeToFile) {
+                saveImageToFile("test", resized, frame++);
+            }
         }
 
     }

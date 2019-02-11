@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 public class TextAreaOutputStream extends OutputStream {
 
-    private static final int LOG_LINES_BUFFER = 50;
+    private static final int LOG_LINES_BUFFER = 100;
 
     private JTextArea textArea;
 

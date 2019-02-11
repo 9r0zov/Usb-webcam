@@ -1,6 +1,6 @@
 package com.pony101.port;
 
-import com.github.sarxos.webcam.Webcam;
+import com.pony101.ui.IWebcamProvider;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.slf4j.Logger;
@@ -20,13 +20,13 @@ public class SerialPortConnector {
 
     private final static Logger LOG = LoggerFactory.getLogger(SerialPortConnector.class);
 
-    public static Optional<SerialPort> connectPort(String portName, Webcam webcam) {
+    public static Optional<SerialPort> connectPort(String portName, IWebcamProvider webcamProvider) {
         SerialPort serialPort = new SerialPort(portName);
 
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_115200, DATABITS_8, STOPBITS_1, PARITY_NONE);
-            serialPort.addEventListener(new CustomSerialPortEventListener(webcam, serialPort));
+            serialPort.addEventListener(new CustomSerialPortEventListener(webcamProvider, serialPort));
 
             return Optional.of(serialPort);
         } catch (SerialPortException e) {
