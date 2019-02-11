@@ -1,50 +1,41 @@
 package com.pony101;
 
-import com.pony101.capture.CaptureTask;
-import com.pony101.port.PortWriter;
+import com.pony101.port.PortDataSenderTask;
 import com.pony101.ui.Window;
-import jssc.SerialPortException;
+import jssc.SerialPort;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.util.Optional;
 
-public class Application {
+import static com.pony101.port.SerialPortConnector.connectPort;
 
-    private CaptureTask captureTask;
+public final class Application {
 
-    public void go() {
-        final Window window = new Window();
-        final PortWriter portWriter = new PortWriter();
+    private final Window window;
+    private final PortDataSenderTask portDataSenderTask;
 
-        window.setBtnClickCallback((started, port) -> {
+    public Application() {
+        this.window = new Window();
+        this.portDataSenderTask = new PortDataSenderTask(window.getWebcam(), Window.IMG_WIDTH, Window.IMG_HEIGHT);
+
+        init();
+    }
+
+    private void init() {
+        new Thread(portDataSenderTask).start();
+
+        window.setStartClickCallback((started, port) -> {
             if (started) {
-                if (portWriter.connectPort(port)) {
-                    captureTask = new CaptureTask(window.getWebcam(), portWriter.getSerialPort(),
-                            Window.IMG_WIDTH, Window.IMG_HEIGHT);
-                    new Thread(captureTask).start();
-                }
+                Optional<SerialPort> serialPort = connectPort(port, window.getWebcam());
+                serialPort.filter(SerialPort::isOpened)
+                        .ifPresent(portDataSenderTask::setSerialPort);
             } else {
-                stopReadingFrames(portWriter);
+                portDataSenderTask.stopCapture();
             }
         });
 
-        window.setWindowEventListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent event) {
-                stopReadingFrames(portWriter);
-            }
-        });
+        window.setWindowClosingListener(portDataSenderTask::stop);
+        window.setWriteToFileSwitchCallback(portDataSenderTask::setWriteToFile);
     }
 
-    private void stopReadingFrames(PortWriter portWriter) {
-        if (captureTask != null) {
-            captureTask.stopCapture();
-        }
-        try {
-            portWriter.stop();
-        } catch (SerialPortException e) {
-            e.printStackTrace();
-        }
-    }
 
 }
