@@ -15,7 +15,7 @@ plugins {
 }
 
 group 'USB-webcam'
-version '0.6'
+version '0.6.1'
 
 repositories {
     mavenCentral()
@@ -43,7 +43,7 @@ sourceCompatibility = 1.8
 shadowJar {
     minimize()
     archiveName = "Usb_Webcam-${version}.${extension}"
-    destinationDir = file("build/launch4j/distribitions")
+    destinationDir = file("build/distributions")
 }
 
 macAppBundle {
@@ -52,5 +52,6 @@ macAppBundle {
 
 launch4j {
     mainClassName = 'com.pony101.Main'
-    jar = "distribitions/${shadowJar.archiveName}"
+    jar = "../distributions/${shadowJar.archiveName}"
+    outputDir = "windows"
 }
