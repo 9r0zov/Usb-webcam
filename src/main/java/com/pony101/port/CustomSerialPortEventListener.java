@@ -75,8 +75,9 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
             byte[] bytes = transformBuffer(data.getData());
 
             try {
+                // todo: that crutch may be fixed in future
                 if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-                    // for Mac build
+                    // for Mac's build
                     for (int i = 0; i < 3; i++) {
                         int to = Math.min(350 * (i + 1), bytes.length);
                         int from = i * 350;
@@ -86,7 +87,7 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
                         safeSleep(MILLISECONDS, 15);
                     }
                 } else {
-                    // for Windows bild
+                    // for Windows' build
                     serialPort.writeBytes(bytes);
                 }
             } catch (SerialPortException e) {
