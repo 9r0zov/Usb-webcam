@@ -1,13 +1,16 @@
 package com.pony101;
 
 import com.pony101.ui.IWebcamProvider;
-import com.pony101.ui.Window;
+import jssc.SerialPort;
 
 import static com.pony101.port.SerialPortConnector.connectPort;
+import static com.pony101.port.SerialPortConnector.stopPort;
 
 public final class Application {
 
     private final IWebcamProvider webcamProvider;
+
+    private SerialPort serialPort;
 
     public Application(IWebcamProvider webcamProvider) {
         this.webcamProvider = webcamProvider;
@@ -18,7 +21,12 @@ public final class Application {
     private void init() {
         webcamProvider.setStartClickCallback((started, port) -> {
             if (started) {
-                connectPort(port, webcamProvider);
+                connectPort(port, webcamProvider)
+                        .ifPresent(serialPort -> this.serialPort = serialPort);
+            } else {
+                if (serialPort != null) {
+                    stopPort(serialPort);
+                }
             }
         });
     }
