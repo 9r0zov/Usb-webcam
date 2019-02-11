@@ -1,5 +1,6 @@
-package com.pony101.port;
+package com.pony101.util;
 
+import com.pony101.port.CustomSerialPortEventListener;
 import com.pony101.ui.IWebcamProvider;
 import jssc.SerialPort;
 import jssc.SerialPortException;
@@ -16,9 +17,9 @@ import static jssc.SerialPort.*;
  * @dope-pony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
-public class SerialPortConnector {
+public class SerialPortUtil {
 
-    private final static Logger LOG = LoggerFactory.getLogger(SerialPortConnector.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SerialPortUtil.class);
 
     public static Optional<SerialPort> connectPort(String portName, IWebcamProvider webcamProvider) {
         SerialPort serialPort = new SerialPort(portName);

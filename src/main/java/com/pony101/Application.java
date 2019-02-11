@@ -3,8 +3,8 @@ package com.pony101;
 import com.pony101.ui.IWebcamProvider;
 import jssc.SerialPort;
 
-import static com.pony101.port.SerialPortConnector.connectPort;
-import static com.pony101.port.SerialPortConnector.stopPort;
+import static com.pony101.util.SerialPortUtil.connectPort;
+import static com.pony101.util.SerialPortUtil.stopPort;
 
 public final class Application {
 
