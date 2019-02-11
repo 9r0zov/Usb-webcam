@@ -192,7 +192,7 @@ public final class Window extends JFrame implements IWebcamProvider {
 
     final class PortSearcher implements Runnable {
 
-        private final DefaultComboBoxModel MODEL = new DefaultComboBoxModel<>();
+        private final DefaultComboBoxModel<String> MODEL = new DefaultComboBoxModel<>();
         private final JComboBox cbPorts;
         private final JButton startBtn;
 
@@ -206,7 +206,10 @@ public final class Window extends JFrame implements IWebcamProvider {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void run() {
+            cbPorts.setModel(MODEL);
+
             while (search) {
                 try {
                     Thread.sleep(500);
@@ -226,7 +229,6 @@ public final class Window extends JFrame implements IWebcamProvider {
                         MODEL.addElement(portName);
                     }
 
-                    cbPorts.setModel(MODEL);
                     cbPorts.setEnabled(portNames.length > 0 && startBtn.getText().equals(START));
                     startBtn.setEnabled(cbPorts.isEnabled() || startBtn.getText().equals(STOP));
 
