@@ -72,16 +72,22 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
             WritableRaster raster = resized.getRaster();
             DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
 
-            byte[] bytes = data.getData();
+            byte[] bytes = transformBuffer(data.getData());
 
             try {
-                for (int i = 0; i < 3; i++) {
-                    int to = Math.min(350 * (i + 1), bytes.length);
-                    int from = i * 350;
+                if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                    // for Mac build
+                    for (int i = 0; i < 3; i++) {
+                        int to = Math.min(350 * (i + 1), bytes.length);
+                        int from = i * 350;
 
-                    serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
+                        serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
 
-                    safeSleep(MILLISECONDS, 25);
+                        safeSleep(MILLISECONDS, 15);
+                    }
+                } else {
+                    // for Windows bild
+                    serialPort.writeBytes(bytes);
                 }
             } catch (SerialPortException e) {
                 LOG.error(e.getMessage(), e);

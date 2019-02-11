@@ -19,6 +19,31 @@ public class SysUtil {
 
     private static final String FILE_PATH = "%1$s%4$simages%4$simage_%2$s_%3$s.png";
 
+    private static final int SCREEN_WIDTH = 128;
+    private static final int BITS_IN_BYTE = 8;
+    private static final int BYTES_IN_LINE = SCREEN_WIDTH / BITS_IN_BYTE;
+
+    public static byte[] transformBuffer(byte[] buffer) {
+        byte[] resultBuf = new byte[buffer.length];
+
+        for (int i = 0; i < buffer.length; i++) {
+            int y = i / BYTES_IN_LINE;
+            int xBase = (i % BYTES_IN_LINE) * BITS_IN_BYTE;
+            int xMapped = xBase +  (y / BITS_IN_BYTE) * SCREEN_WIDTH;
+
+            for (int mask = 0x80; mask != 0; mask >>= 1) {
+                if ((byte) (mask & buffer[i]) != 0) {
+                    resultBuf[xMapped] |=  (1 << (y & 7));
+                } else {
+                    resultBuf[xMapped] &=  ~(1 << (y & 7));
+                }
+                ++xMapped;
+            }
+        }
+
+        return resultBuf;
+    }
+
     public static void saveImageToFile(String suffix, BufferedImage image, int frame) {
         final String userDir = System.getProperty("user.dir");
         final String separator = File.separator;
