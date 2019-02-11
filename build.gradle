@@ -54,4 +54,5 @@ launch4j {
     mainClassName = 'com.pony101.Main'
     jar = "../distributions/${shadowJar.archiveName}"
     outputDir = "windows"
+    xmlFileName = "launch.xml"
 }

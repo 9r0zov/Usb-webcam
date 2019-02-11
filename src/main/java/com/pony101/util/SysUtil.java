@@ -44,6 +44,7 @@ public class SysUtil {
         return resultBuf;
     }
 
+    @SuppressWarnings(value = "ResultOfMethodCallIgnored")
     public static void saveImageToFile(String suffix, BufferedImage image, int frame) {
         final String userDir = System.getProperty("user.dir");
         final String separator = File.separator;

@@ -56,7 +56,7 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
         }
     }
 
-    private void sendFrameMessage() {
+    private void sendFrameMessage() throws SerialPortException {
         BufferedImage image;
         synchronized (webcam) {
             if (!webcam.isOpen()) {
@@ -68,30 +68,26 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
 
         resizeFrameAndFlipHorizontal(image, resized);
 
-        if (serialPort != null && serialPort.isOpened()) {
+        if (serialPort.isOpened()) {
             WritableRaster raster = resized.getRaster();
             DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
 
             byte[] bytes = transformBuffer(data.getData());
 
-            try {
-                // todo: that crutch may be fixed in future
-                if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-                    // for Mac's build
-                    for (int i = 0; i < 3; i++) {
-                        int to = Math.min(350 * (i + 1), bytes.length);
-                        int from = i * 350;
+            // todo: that crutch may be fixed in future
+            if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                // for Mac's build
+                for (int i = 0; i < 3; i++) {
+                    int to = Math.min(350 * (i + 1), bytes.length);
+                    int from = i * 350;
 
-                        serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
+                    serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
 
-                        safeSleep(MILLISECONDS, 15);
-                    }
-                } else {
-                    // for Windows' build
-                    serialPort.writeBytes(bytes);
+                    safeSleep(MILLISECONDS, 15);
                 }
-            } catch (SerialPortException e) {
-                LOG.error(e.getMessage(), e);
+            } else {
+                // for Windows' build
+                serialPort.writeBytes(bytes);
             }
 
             saveImageToFile("test", resized, frame++);
