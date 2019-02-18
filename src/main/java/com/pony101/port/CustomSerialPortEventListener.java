@@ -91,7 +91,7 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
 
                     serialPort.writeBytes(Arrays.copyOfRange(bytes, from, to));
 
-                    safeSleep(MILLISECONDS, 15);
+                    safeSleep(MILLISECONDS, 2);
                 }
             } else {
                 // for Windows' build

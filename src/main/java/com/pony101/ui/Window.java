@@ -104,7 +104,7 @@ public final class Window extends JFrame implements IWebcamProvider {
             webcamPanel.setFPSLimited(false);
             webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
             webcamPanel.setMirrored(true);
-            webcam.open();
+            webcam.open(true);
 
             add(webcamPanel);
 
