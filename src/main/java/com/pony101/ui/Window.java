@@ -66,8 +66,8 @@ public final class Window extends JFrame implements IWebcamProvider {
     }
 
     @Override
-    public void addCameraListener(Consumer<BufferedImage> consumer) {
-        webcam.addWebcamListener(new FramesWebcamListener(consumer));
+    public void addCameraListener(FramesWebcamListener listener) {
+        webcam.addWebcamListener(listener);
     }
 
     @Override
@@ -122,6 +122,8 @@ public final class Window extends JFrame implements IWebcamProvider {
                 }
             });
         } catch (WebcamException e) {
+            LOG.error(e.getMessage(), e);
+
             final JLabel text = new JLabel();
             text.setText("No camera detected");
             text.setFont(new Font("Arial", Font.PLAIN, 26));

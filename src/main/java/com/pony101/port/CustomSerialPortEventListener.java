@@ -1,7 +1,8 @@
 package com.pony101.port;
 
-import com.github.sarxos.webcam.Webcam;
+import com.pony101.DataDto;
 import com.pony101.ui.IWebcamProvider;
+import com.pony101.util.DataTransfer;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -9,13 +10,11 @@ import jssc.SerialPortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.util.Arrays;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import static com.pony101.util.SysUtil.*;
-import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
+import static com.pony101.util.SysUtil.safeSleep;
+import static com.pony101.util.SysUtil.saveImageToFile;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class CustomSerialPortEventListener implements SerialPortEventListener {
@@ -24,17 +23,17 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
 
     private static final String MESSAGE_REQUEST = "req";
 
-    private final BufferedImage resized = new BufferedImage(128, 64, TYPE_BYTE_BINARY);
-
-    private final Webcam webcam;
+    private final DataTransfer<DataDto> imageTransfer;
     private final SerialPort serialPort;
 
     private int frame;
     private boolean writeToFile;
 
-    public CustomSerialPortEventListener(IWebcamProvider webcamProvider, SerialPort serialPort) {
-        this.webcam = webcamProvider.getWebcam();
+    public CustomSerialPortEventListener(IWebcamProvider webcamProvider,
+                                         SerialPort serialPort,
+                                         DataTransfer<DataDto> imageTransfer) {
         this.serialPort = serialPort;
+        this.imageTransfer = imageTransfer;
 
         webcamProvider.setWriteToFileSwitchCallback(this::setWriteToFile);
     }
@@ -59,30 +58,17 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
                     sendFrameMessage();
                 }
             }
-        } catch (SerialPortException e) {
+        } catch (SerialPortException | InterruptedException e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
-    private void sendFrameMessage() throws SerialPortException {
-        BufferedImage image;
-        synchronized (webcam) {
-            if (!webcam.isOpen()) {
-                return;
-            }
-
-            image = webcam.getImage();
-        }
-
-        resizeFrameAndFlipHorizontal(image, resized);
+    private void sendFrameMessage() throws SerialPortException, InterruptedException {
+        DataDto image = imageTransfer.getData();
 
         if (serialPort.isOpened()) {
-            WritableRaster raster = resized.getRaster();
-            DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
+            byte[] bytes = image.getData();
 
-            byte[] bytes = transformBuffer(data.getData());
-
-            // todo: that crutch may be fixed in future
             if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                 // for Mac's build
                 for (int i = 0; i < 3; i++) {
@@ -99,10 +85,9 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
             }
 
             if (writeToFile) {
-                saveImageToFile("test", resized, frame++);
+                saveImageToFile("test", image.getImg(), frame++);
             }
         }
-
     }
 
 }

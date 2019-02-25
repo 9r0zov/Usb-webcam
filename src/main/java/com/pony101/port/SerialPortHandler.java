@@ -17,4 +17,8 @@ public class SerialPortHandler {
     public void setSerialPort(SerialPort serialPort) {
         this.serialPort = serialPort;
     }
+
+    public boolean isOpened() {
+        return serialPort.isOpened();
+    }
 }
