@@ -69,6 +69,7 @@ public class CustomSerialPortEventListener implements SerialPortEventListener {
         if (serialPort.isOpened()) {
             byte[] bytes = image.getData();
 
+            // TODO: 2/25/19 remove that crutch in future
             if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                 // for Mac's build
                 for (int i = 0; i < 3; i++) {

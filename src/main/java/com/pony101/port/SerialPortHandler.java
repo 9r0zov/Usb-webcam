@@ -19,6 +19,6 @@ public class SerialPortHandler {
     }
 
     public boolean isOpened() {
-        return serialPort.isOpened();
+        return serialPort != null && serialPort.isOpened();
     }
 }
