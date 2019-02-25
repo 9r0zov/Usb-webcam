@@ -62,7 +62,7 @@ public class FramesWebcamListener implements WebcamListener {
             try {
                 dataTransfer.setData(new DataDto(bytes, resized));
             } catch (InterruptedException e) {
-                LOG.error(e.getMessage(), e);   
+                LOG.error(e.getMessage(), e);
             }
         }
     }
