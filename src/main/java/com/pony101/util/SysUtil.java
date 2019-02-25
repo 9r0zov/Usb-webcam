@@ -15,7 +15,7 @@ import static java.lang.String.format;
 
 public class SysUtil {
 
-    private static final  Logger LOG = LoggerFactory.getLogger(SysUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SysUtil.class);
 
     private static final String FILE_PATH = "%1$s%4$simages%4$simage_%2$s_%3$s.png";
 
@@ -29,13 +29,13 @@ public class SysUtil {
         for (int i = 0; i < buffer.length; i++) {
             int y = i / BYTES_IN_LINE;
             int xBase = (i % BYTES_IN_LINE) * BITS_IN_BYTE;
-            int xMapped = xBase +  (y / BITS_IN_BYTE) * SCREEN_WIDTH;
+            int xMapped = xBase + (y / BITS_IN_BYTE) * SCREEN_WIDTH;
 
             for (int mask = 0x80; mask != 0; mask >>= 1) {
                 if ((byte) (mask & buffer[i]) != 0) {
-                    resultBuf[xMapped] |=  (1 << (y & 7));
+                    resultBuf[xMapped] |= (1 << (y & 7));
                 } else {
-                    resultBuf[xMapped] &=  ~(1 << (y & 7));
+                    resultBuf[xMapped] &= ~(1 << (y & 7));
                 }
                 ++xMapped;
             }
@@ -44,6 +44,7 @@ public class SysUtil {
         return resultBuf;
     }
 
+    @SuppressWarnings(value = "ResultOfMethodCallIgnored")
     public static void saveImageToFile(String suffix, BufferedImage image, int frame) {
         final String userDir = System.getProperty("user.dir");
         final String separator = File.separator;
@@ -67,6 +68,26 @@ public class SysUtil {
         g2d.setTransform(at);
         g2d.drawImage(image, 0, 0, 128, 64, null);
         g2d.dispose();
+    }
+
+    public static void scale(BufferedImage src, BufferedImage resized) {
+        int w = 128, h = 64;
+        int x, y;
+        int ww = src.getWidth();
+        int hh = src.getHeight();
+
+        int[] ys = new int[h];
+
+        for (y = 0; y < h; y++) {
+            ys[y] = y * hh / h;
+        }
+        for (x = 0; x < w; x++) {
+            int newX = x * ww / w;
+            for (y = 0; y < h; y++) {
+                int col = src.getRGB(newX, ys[y]);
+                resized.setRGB(x, y, col);
+            }
+        }
     }
 
     public static void safeSleep(TimeUnit timeUnit, int time) {

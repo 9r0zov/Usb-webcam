@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -29,7 +30,7 @@ import static javax.swing.SwingConstants.LEADING;
  * @dope-pony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
-public final class Window extends JFrame {
+public final class Window extends JFrame implements IWebcamProvider {
 
     private final static Logger LOG = LoggerFactory.getLogger(Window.class);
 
@@ -38,16 +39,19 @@ public final class Window extends JFrame {
     public static final int IMG_WIDTH = 640;
     public static final int IMG_HEIGHT = 480;
     private static final int WINDOW_HEIGHT = IMG_HEIGHT + 250;
-    private static final int LOG_LINES_BUFFER = 50;
 
     private final String START = "Start";
     private final String STOP = "Stop";
 
     private Webcam webcam;
-    private JCheckBox writeToFileCheckBox;
     private JComboBox<String> cbPorts;
     private JButton btnStartStop;
+    private JCheckBox writeToFileCheckBox;
     private boolean started;
+
+    private Consumer<Boolean> writeToFileCheckBoxEventListener;
+    private Runnable windowClosingEventListener;
+    private BiConsumer<Boolean, String> btnStartStopListener;
 
     private PortSearcher portSearcher;
 
@@ -61,49 +65,27 @@ public final class Window extends JFrame {
         initWindow();
     }
 
-    public void addCameraListener(Consumer<BufferedImage> consumer) {
-        webcam.addWebcamListener(new FramesWebcamListener(consumer));
+    @Override
+    public void addCameraListener(FramesWebcamListener listener) {
+        webcam.addWebcamListener(listener);
     }
 
-    public void setWriteToFileSwitchCallback(Consumer<Boolean> consumer) {
-        writeToFileCheckBox.addItemListener(e -> consumer.accept(e.getStateChange() == ItemEvent.SELECTED));
+    @Override
+    public void setWriteToFileSwitchCallback(Consumer<Boolean> writeToFileSwitchCallback) {
+        this.writeToFileCheckBoxEventListener = writeToFileSwitchCallback;
     }
 
-    public void setWindowClosingListener(Runnable consumer) {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                super.windowClosing(e);
-                consumer.run();
-                portSearcher.setSearch(false);
-                if (webcam != null) {
-                    webcam.close();
-                }
-            }
-        });
+    @Override
+    public void setWindowClosingListener(Runnable windowClosingListener) {
+        this.windowClosingEventListener = windowClosingListener;
     }
 
-    public void setStartClickCallback(BiConsumer<Boolean, String> consumer) {
-        if (btnStartStop != null) {
-            btnStartStop.addActionListener(e -> {
-
-                if (started) {
-                    started = false;
-                    btnStartStop.setText(START);
-                } else {
-                    if (cbPorts.getSelectedItem() != null) {
-                        started = true;
-                        btnStartStop.setText(STOP);
-                    }
-                }
-
-                cbPorts.setEnabled(!started && cbPorts.getItemCount() > 0);
-                consumer.accept(started, cbPorts.getSelectedItem().toString());
-
-            });
-        }
+    @Override
+    public void setStartClickCallback(BiConsumer<Boolean, String> btnStartStopListener) {
+        this.btnStartStopListener = btnStartStopListener;
     }
 
+    @Override
     public Webcam getWebcam() {
         return webcam;
     }
@@ -122,20 +104,45 @@ public final class Window extends JFrame {
             webcamPanel.setFPSLimited(false);
             webcamPanel.setSize(IMG_WIDTH, IMG_HEIGHT);
             webcamPanel.setMirrored(true);
-            webcam.open();
+            webcam.open(true);
 
             add(webcamPanel);
+
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    super.windowClosing(e);
+                    if (windowClosingEventListener != null) {
+                        windowClosingEventListener.run();
+                    }
+                    portSearcher.setSearch(false);
+                    if (webcam != null) {
+                        webcam.close();
+                    }
+                }
+            });
         } catch (WebcamException e) {
+            LOG.error(e.getMessage(), e);
+
             final JLabel text = new JLabel();
             text.setText("No camera detected");
-            text.setFont(new Font("Arial", 0, 26));
+            text.setFont(new Font("Arial", Font.PLAIN, 26));
             add(text);
+
+            setVisible(true);
+            return;
         }
 
         writeToFileCheckBox = new JCheckBox();
         writeToFileCheckBox.setSelected(false);
         writeToFileCheckBox.setText("Write to file:");
         writeToFileCheckBox.setHorizontalTextPosition(LEADING);
+        writeToFileCheckBox.addItemListener(e -> {
+            if (writeToFileCheckBoxEventListener != null) {
+                writeToFileCheckBoxEventListener.accept(e.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+        writeToFileCheckBox.setEnabled(false);
         add(writeToFileCheckBox);
 
         cbPorts = new JComboBox<>(SerialPortList.getPortNames());
@@ -144,7 +151,7 @@ public final class Window extends JFrame {
         add(cbPorts);
 
         btnStartStop = new JButton(START);
-
+        btnStartStop.addActionListener(this::getBtnStartStopEventListener);
         add(btnStartStop);
 
         JTextArea logArea = new JTextArea();
@@ -156,7 +163,6 @@ public final class Window extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(logArea);
         scrollPane.setWheelScrollingEnabled(true);
-
         add(scrollPane);
 
         LogMessageReceiverAppender.setStaticOutputStream(new TextAreaOutputStream(logArea));
@@ -167,9 +173,28 @@ public final class Window extends JFrame {
         setVisible(true);
     }
 
+    private void getBtnStartStopEventListener(ActionEvent e) {
+        if (started) {
+            started = false;
+            btnStartStop.setText(START);
+        } else {
+            if (cbPorts.getSelectedItem() != null) {
+                started = true;
+                btnStartStop.setText(STOP);
+            }
+        }
+
+        writeToFileCheckBox.setSelected(false);
+        writeToFileCheckBox.setEnabled(started);
+        cbPorts.setEnabled(!started && cbPorts.getItemCount() > 0);
+        if (btnStartStopListener != null) {
+            btnStartStopListener.accept(started, cbPorts.getSelectedItem().toString());
+        }
+    }
+
     final class PortSearcher implements Runnable {
 
-        private final DefaultComboBoxModel MODEL = new DefaultComboBoxModel<>();
+        private final DefaultComboBoxModel<String> MODEL = new DefaultComboBoxModel<>();
         private final JComboBox cbPorts;
         private final JButton startBtn;
 
@@ -183,7 +208,10 @@ public final class Window extends JFrame {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void run() {
+            cbPorts.setModel(MODEL);
+
             while (search) {
                 try {
                     Thread.sleep(500);
@@ -203,7 +231,6 @@ public final class Window extends JFrame {
                         MODEL.addElement(portName);
                     }
 
-                    cbPorts.setModel(MODEL);
                     cbPorts.setEnabled(portNames.length > 0 && startBtn.getText().equals(START));
                     startBtn.setEnabled(cbPorts.isEnabled() || startBtn.getText().equals(STOP));
 

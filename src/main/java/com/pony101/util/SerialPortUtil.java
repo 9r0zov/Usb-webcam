@@ -1,12 +1,15 @@
-package com.pony101.port;
+package com.pony101.util;
 
-import com.github.sarxos.webcam.Webcam;
+import com.pony101.DataDto;
+import com.pony101.port.CustomSerialPortEventListener;
+import com.pony101.ui.IWebcamProvider;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static jssc.SerialPort.*;
 
@@ -16,17 +19,19 @@ import static jssc.SerialPort.*;
  * @dope-pony101 denis.kruglov.dev@gmail.com
  * date: 09.11.2017
  */
-public class SerialPortConnector {
+public class SerialPortUtil {
 
-    private final static Logger LOG = LoggerFactory.getLogger(SerialPortConnector.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SerialPortUtil.class);
 
-    public static Optional<SerialPort> connectPort(String portName, Webcam webcam) {
+    public static Optional<SerialPort> connectPort(String portName,
+                                                   IWebcamProvider webcamProvider,
+                                                   DataTransfer<DataDto> dataTransfer) {
         SerialPort serialPort = new SerialPort(portName);
 
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_115200, DATABITS_8, STOPBITS_1, PARITY_NONE);
-            serialPort.addEventListener(new CustomSerialPortEventListener(webcam, serialPort));
+            serialPort.addEventListener(new CustomSerialPortEventListener(webcamProvider, serialPort, dataTransfer));
 
             return Optional.of(serialPort);
         } catch (SerialPortException e) {
